@@ -2,6 +2,7 @@
 // src/Controller/PagesController.php
 namespace App\Controller;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,10 +20,14 @@ use App\Entity\Admin;
 class PagesController extends AbstractController
 {
 
+    public function __construct(private ManagerRegistry $doctrine)
+    {
+    }
+
     public function getContentArray(Request $request){
         
         $locale = $request->getLocale();
-        $crepository = $this->getDoctrine()->getRepository(Content::class);
+        $crepository = $this->doctrine->getRepository(Content::class);
         $allContent = $crepository->findAll();
         $content = array();
         for($i = 0; $i<sizeof($allContent); $i++){
@@ -100,10 +105,10 @@ class PagesController extends AbstractController
 
     public function index(Request $request){
         
-        $repository = $this->getDoctrine()->getRepository(Article::class);
+        $repository = $this->doctrine->getRepository(Article::class);
         $articles = $repository->findBy(['published' => 1]);
 
-        $user_repository = $this->getDoctrine()->getRepository(Admin::class);
+        $user_repository = $this->doctrine->getRepository(Admin::class);
 
         $articletime = array();
         $articleauthor = array();
@@ -126,7 +131,7 @@ class PagesController extends AbstractController
         $articleauthor = array_reverse($articleauthor);
 
 
-        $event_repository = $this->getDoctrine()->getRepository(Event::class);
+        $event_repository = $this->doctrine->getRepository(Event::class);
         $events = $event_repository->findBy(
             array(),
             array('position' => 'ASC')
@@ -211,10 +216,10 @@ class PagesController extends AbstractController
 
     public function articles(Request $request){
         
-        $repository = $this->getDoctrine()->getRepository(Article::class);
+        $repository = $this->doctrine->getRepository(Article::class);
         $articles = $repository->findBy(['published' => 1]);
 
-        $user_repository = $this->getDoctrine()->getRepository(Admin::class);
+        $user_repository = $this->doctrine->getRepository(Admin::class);
 
         $articletime = array();
         $articleauthor = array();
@@ -249,10 +254,10 @@ class PagesController extends AbstractController
 
     public function author(Request $request){
         
-        $repository = $this->getDoctrine()->getRepository(Article::class);
+        $repository = $this->doctrine->getRepository(Article::class);
         $articles = $repository->findBy( ['published' => 1, 'author' => $request->attributes->get('author') ] );
 
-        $user_repository = $this->getDoctrine()->getRepository(Admin::class);
+        $user_repository = $this->doctrine->getRepository(Admin::class);
 
         $articletime = array();
         $articleauthors = array();
@@ -287,10 +292,10 @@ class PagesController extends AbstractController
 
     public function tag(Request $request){
         
-        $repository = $this->getDoctrine()->getRepository(Article::class);
+        $repository = $this->doctrine->getRepository(Article::class);
         $allArticles = $repository->findBy(['published' => 1]);
 
-        $user_repository = $this->getDoctrine()->getRepository(Admin::class);
+        $user_repository = $this->doctrine->getRepository(Admin::class);
 
         $tag = $request->attributes->get("tag");
         for($i = 0; $i<strlen($tag); $i++)
@@ -345,10 +350,10 @@ class PagesController extends AbstractController
 
     public function article(Request $request){
         
-        $repository = $this->getDoctrine()->getRepository(Article::class);
+        $repository = $this->doctrine->getRepository(Article::class);
         $article = $repository->findOneBy( array('link' => $request->attributes->get('article_url') ) );
 
-        $user_repository = $this->getDoctrine()->getRepository(Admin::class);
+        $user_repository = $this->doctrine->getRepository(Admin::class);
 
         //$articletime = array();
 
@@ -390,7 +395,7 @@ class PagesController extends AbstractController
 
     public function documents(Request $request){
         
-        $repository = $this->getDoctrine()->getRepository(Document::class);
+        $repository = $this->doctrine->getRepository(Document::class);
         $documents = $repository->findBy(
             array(),
             array('position' => 'ASC')
@@ -406,7 +411,7 @@ class PagesController extends AbstractController
 
     public function partners(Request $request){
         
-        $repository = $this->getDoctrine()->getRepository(Partner::class);
+        $repository = $this->doctrine->getRepository(Partner::class);
         $partners = $repository->findBy(
             array(),
             array('position' => 'ASC')
@@ -424,7 +429,7 @@ class PagesController extends AbstractController
 
     public function people(Request $request){
         
-        $repository = $this->getDoctrine()->getRepository(Person::class);
+        $repository = $this->doctrine->getRepository(Person::class);
         $people = $repository->findBy(
             array(),
             array('position' => 'ASC')
@@ -442,7 +447,7 @@ class PagesController extends AbstractController
 
     public function events(Request $request){
         
-        $repository = $this->getDoctrine()->getRepository(Event::class);
+        $repository = $this->doctrine->getRepository(Event::class);
         $events = $repository->findBy(
             array(),
             array('position' => 'ASC')
@@ -467,7 +472,7 @@ class PagesController extends AbstractController
 
     public function event(Request $request){
         
-        $repository = $this->getDoctrine()->getRepository(Event::class);
+        $repository = $this->doctrine->getRepository(Event::class);
         $event = $repository->find( $request->attributes->get('id') );
     
         return $this->render('pages/event.html.twig', [

@@ -2,9 +2,10 @@
 
 namespace App\Controller;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,9 +24,13 @@ use App\Entity\Subscriber;
 
 class EmailController extends AbstractController{   
 
+    public function __construct(private ManagerRegistry $doctrine)
+    {
+    }
+
     public function events(SessionInterface $session, UserInterface $user){
         
-        $repository = $this->getDoctrine()->getRepository(Event::class);
+        $repository = $this->doctrine->getRepository(Event::class);
         $events = $repository->findBy(
             array(),
             array('position' => 'ASC')
@@ -71,11 +76,11 @@ class EmailController extends AbstractController{
 
             // ... perform some action, such as saving the task to the database
             // for example, if Task is a Doctrine entity, save it!
-            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager = $this->doctrine->getManager();
             $entityManager->persist($event);
             $entityManager->flush();
             
-            $repository = $this->getDoctrine()->getRepository(Event::class);
+            $repository = $this->doctrine->getRepository(Event::class);
             $ev = $repository->findOneBy( ['title' => $event->getTitle(), 'time0' => $event->getTime0()] );
             $ev->setPosition( $ev->getId() );
 
@@ -94,7 +99,7 @@ class EmailController extends AbstractController{
 
     public function editEvent(SessionInterface $session, Request $request, UserInterface $user){
         
-        $repository = $this->getDoctrine()->getRepository(Event::class);
+        $repository = $this->doctrine->getRepository(Event::class);
 
         $event = $repository->find( $request->attributes->get('id') );
 
@@ -121,7 +126,7 @@ class EmailController extends AbstractController{
 
             // ... perform some action, such as saving the task to the database
             // for example, if Task is a Doctrine entity, save it!
-            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager = $this->doctrine->getManager();
             $entityManager->persist($event);
             $entityManager->flush();
     
@@ -139,7 +144,7 @@ class EmailController extends AbstractController{
 
     public function swapEvent(SessionInterface $session, Request $request, UserInterface $user){
         
-        $repository = $this->getDoctrine()->getRepository(Event::class);
+        $repository = $this->doctrine->getRepository(Event::class);
         $event0 = $repository->find( $request->query->get('id0') );
         $event1 = $repository->find( $request->query->get('id1') );
 
@@ -149,7 +154,7 @@ class EmailController extends AbstractController{
         $event0->setPosition($pos1);
         $event1->setPosition($pos0);
     
-        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager = $this->doctrine->getManager();
         $entityManager->persist($event0);
         $entityManager->persist($event1);
         $entityManager->flush();
@@ -159,10 +164,10 @@ class EmailController extends AbstractController{
 
     public function deleteEvent(SessionInterface $session, Request $request, UserInterface $user){
         
-        $repository = $this->getDoctrine()->getRepository(Event::class);
+        $repository = $this->doctrine->getRepository(Event::class);
         $event = $repository->find( $request->attributes->get('id') );
 
-        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager = $this->doctrine->getManager();
         $entityManager->remove($event);
         $entityManager->flush();
         return $this->redirectToRoute('adminEvents');

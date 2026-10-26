@@ -2,9 +2,10 @@
 
 namespace App\Controller;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,12 +25,16 @@ use App\Entity\Document;
 
 class AdminController extends AbstractController{
 
+    public function __construct(private ManagerRegistry $doctrine)
+    {
+    }
+
     private function checkIfLoggedIn(SessionInterface $session){
         if( $session->get('adminId', -1) == -1 ) return false; else return true;
     }
 
     private function getAdminById($id){
-        $repository = $this->getDoctrine()->getRepository(Admin::class);
+        $repository = $this->doctrine->getRepository(Admin::class);
         $admin = $repository->find($id);
         return $admin;
     }
@@ -55,7 +60,7 @@ class AdminController extends AbstractController{
 
     public function index(SessionInterface $session, UserInterface $user){
 
-        $article_repository = $this->getDoctrine()->getRepository(Article::class);
+        $article_repository = $this->doctrine->getRepository(Article::class);
         $articles = $article_repository->findAll();
 
         for($i = 0; $i<sizeof($articles); $i++){
@@ -65,7 +70,7 @@ class AdminController extends AbstractController{
 
         $articles = array_reverse($articles);
 
-        $event_repository = $this->getDoctrine()->getRepository(Event::class);
+        $event_repository = $this->doctrine->getRepository(Event::class);
         $events = $event_repository->findBy(
             array(),
             array('position' => 'ASC')
@@ -77,7 +82,7 @@ class AdminController extends AbstractController{
             $statuses[ $events[$i]->getFinished() ] = true;
         }
 
-        $document_repository = $this->getDoctrine()->getRepository(Document::class);
+        $document_repository = $this->doctrine->getRepository(Document::class);
         $documents = $document_repository->findBy(
             array(),
             array('position' => 'ASC')
@@ -96,7 +101,7 @@ class AdminController extends AbstractController{
     }
 
 
-    public function myAccount(SessionInterface $session, Request $request, UserInterface $user, UserPasswordEncoderInterface $encoder){
+    public function myAccount(SessionInterface $session, Request $request, UserInterface $user, UserPasswordHasherInterface $encoder){
         
         $defaultData = array('name' =>  $user->getName());
 
@@ -128,10 +133,10 @@ class AdminController extends AbstractController{
             $user->setName( $data['name'] ); 
             if( $data['password'] !== null && $data['password'] != "" ){
                 
-                $pass = $encoder->encodePassword($user, $data['password']);
+                $pass = $encoder->hashPassword($user, $data['password']);
                 $user->setPassword( $pass );    
             }
-            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager = $this->doctrine->getManager();
             $entityManager->persist($user);
             $entityManager->flush();
 

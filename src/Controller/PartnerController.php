@@ -2,9 +2,10 @@
 
 namespace App\Controller;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,9 +27,13 @@ use App\Entity\Partner;
 
 class PartnerController extends AbstractController{
 
+    public function __construct(private ManagerRegistry $doctrine)
+    {
+    }
+
     public function partners(SessionInterface $session, UserInterface $user){
         
-        $repository = $this->getDoctrine()->getRepository(Partner::class);
+        $repository = $this->doctrine->getRepository(Partner::class);
         $partners = $repository->findBy(
             array(),
             array('position' => 'ASC')
@@ -80,11 +85,11 @@ class PartnerController extends AbstractController{
 
             // ... perform some action, such as saving the task to the database
             // for example, if Task is a Doctrine entity, save it!
-            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager = $this->doctrine->getManager();
             $entityManager->persist($partner);
             $entityManager->flush();
             
-            $repository = $this->getDoctrine()->getRepository(Partner::class);
+            $repository = $this->doctrine->getRepository(Partner::class);
             $partn = $repository->findOneBy( ['name' => $partner->getName()] );
             $partn->setPosition( $partn->getId() );
 
@@ -103,7 +108,7 @@ class PartnerController extends AbstractController{
 
     public function editPartner(SessionInterface $session, Request $request, UserInterface $user){
 
-        $repository = $this->getDoctrine()->getRepository(Partner::class);
+        $repository = $this->doctrine->getRepository(Partner::class);
 
         $partner = $repository->find( $request->attributes->get('id') );
 
@@ -150,7 +155,7 @@ class PartnerController extends AbstractController{
 
             // ... perform some action, such as saving the task to the database
             // for example, if Task is a Doctrine entity, save it!
-            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager = $this->doctrine->getManager();
             $entityManager->persist($partner);
             $entityManager->flush();
     
@@ -169,7 +174,7 @@ class PartnerController extends AbstractController{
 
     public function swapPartner(SessionInterface $session, Request $request, UserInterface $user){
         
-        $repository = $this->getDoctrine()->getRepository(Partner::class);
+        $repository = $this->doctrine->getRepository(Partner::class);
         $partner0 = $repository->find( $request->query->get('id0') );
         $partner1 = $repository->find( $request->query->get('id1') );
 
@@ -179,7 +184,7 @@ class PartnerController extends AbstractController{
         $partner0->setPosition($pos1);
         $partner1->setPosition($pos0);
     
-        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager = $this->doctrine->getManager();
         $entityManager->persist($partner0);
         $entityManager->persist($partner1);
         $entityManager->flush();
@@ -188,7 +193,7 @@ class PartnerController extends AbstractController{
 
     public function deletePartner(SessionInterface $session, Request $request, UserInterface $user){
         
-        $repository = $this->getDoctrine()->getRepository(Partner::class);
+        $repository = $this->doctrine->getRepository(Partner::class);
         $partner = $repository->find( $request->attributes->get('id') );
 
         if( $partner->getLogo() !== null )
@@ -196,7 +201,7 @@ class PartnerController extends AbstractController{
                 'fileName'  => $partner->getLogo(),
             ));
     
-        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager = $this->doctrine->getManager();
         $entityManager->remove($partner);
         $entityManager->flush();
         return $this->redirectToRoute('adminPartners');

@@ -26,7 +26,7 @@
                         <div class="ui divider"></div>
                         {% set i = 0 %}
                         {% set break = false %}
-                        {% for article in articles if not break %}
+                        {% for article in articles %}{% if not break %}
                             <div style="margin-bottom: 12px;">
                                 <a href="{{ path('adminArticlesEdit', {"id": article.id}) }}"><h4>{{ article.title }}</h4></a> 
                                 <small><a href="{{ path('author', {author: article.author}) }}" target="_blank" class="author">{{ article.author }}</a>, {{ article.time|date('d.m.Y H:i', "Europe/Riga") }} </small>
@@ -36,7 +36,7 @@
                             </div>
                             {% set i = i + 1 %}
                             {% if i is same as(4) %}{% set break = true %}{% endif %}
-                        {% endfor %}
+                        {% endif %}{% endfor %}
                     </div>
                     <a class="ui bottom attached button" href="{{ path('adminArticles') }}" tabindex="0">Articles</a>
                 </div>
@@ -50,7 +50,7 @@
                         <div class="ui divider"></div>
                         {% set i = 0 %}
                         {% set break = false %}
-                        {% for event in events if not break %}
+                        {% for event in events %}{% if not break %}
                             <div style="margin-bottom: 12px;">
                                 <a href="{{ path('adminEventsEdit', {"id": event.id}) }}"><h4>{{ event.title }}
                                 {% if cycle(events, i).finished is same as(0) %}
@@ -65,7 +65,7 @@
                             </div>
                             {% set i = i + 1 %}
                             {% if i is same as(4) %}{% set break = true %}{% endif %}
-                        {% endfor %}
+                        {% endif %}{% endfor %}
                     </div>
                     <a class="ui bottom attached button" href="{{ path('adminEvents') }}">Events</a>
                 </div> 
@@ -80,7 +80,7 @@
                         <div class="ui divider"></div>
                         {% set i = 0 %}
                         {% set break = false %}
-                        {% for document in documents if not break %}
+                        {% for document in documents %}{% if not break %}
                             {% if document.type is same as(1) %}
                             <div style="margin-bottom: 12px;">
                                 <a href="{{ path('openFile', {'file': document.file }) }}" target='_blank'><h4>{{document.name}}</h4></a>
@@ -89,7 +89,7 @@
                             
                             {% set i = i + 1 %}
                             {% if i is same as(4) %}{% set break = true %}{% endif %}
-                        {% endfor %}
+                        {% endif %}{% endfor %}
 
                         <div class="ui divider"></div>
 

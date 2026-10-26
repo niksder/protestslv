@@ -2,9 +2,10 @@
 
 namespace App\Controller;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,6 +26,10 @@ use App\Entity\Admin;
 use App\Entity\Document;
 
 class DocumentController extends AbstractController{   
+
+    public function __construct(private ManagerRegistry $doctrine)
+    {
+    }
     
     public function getDocumentCats(){
         $cats = ['Main documents', 'Meeting summaries'];
@@ -33,7 +38,7 @@ class DocumentController extends AbstractController{
 
     public function documents(SessionInterface $session, UserInterface $user){
         
-        $repository = $this->getDoctrine()->getRepository(Document::class);
+        $repository = $this->doctrine->getRepository(Document::class);
         $documents = $repository->findBy(
             array(),
             array('position' => 'ASC')
@@ -91,11 +96,11 @@ class DocumentController extends AbstractController{
 
             // ... perform some action, such as saving the task to the database
             // for example, if Task is a Doctrine entity, save it!
-            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager = $this->doctrine->getManager();
             $entityManager->persist($document);
             $entityManager->flush();
             
-            $repository = $this->getDoctrine()->getRepository(Document::class);
+            $repository = $this->doctrine->getRepository(Document::class);
             $doc = $repository->findOneBy( ['name' => $document->getName()] );
             $doc->setPosition( $doc->getId() );
 
@@ -121,7 +126,7 @@ class DocumentController extends AbstractController{
         }
 
 
-        $repository = $this->getDoctrine()->getRepository(Document::class);
+        $repository = $this->doctrine->getRepository(Document::class);
 
         $document = $repository->find( $request->attributes->get('id') );
 
@@ -169,7 +174,7 @@ class DocumentController extends AbstractController{
 
             // ... perform some action, such as saving the task to the database
             // for example, if Task is a Doctrine entity, save it!
-            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager = $this->doctrine->getManager();
             $entityManager->persist($document);
             $entityManager->flush();
     
@@ -188,7 +193,7 @@ class DocumentController extends AbstractController{
 
     public function swapDocument(SessionInterface $session, Request $request, UserInterface $user){
         
-        $repository = $this->getDoctrine()->getRepository(Document::class);
+        $repository = $this->doctrine->getRepository(Document::class);
         $document0 = $repository->find( $request->query->get('id0') );
         $document1 = $repository->find( $request->query->get('id1') );
 
@@ -198,7 +203,7 @@ class DocumentController extends AbstractController{
         $document0->setPosition($pos1);
         $document1->setPosition($pos0);
     
-        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager = $this->doctrine->getManager();
         $entityManager->persist($document0);
         $entityManager->persist($document1);
         $entityManager->flush();
@@ -207,7 +212,7 @@ class DocumentController extends AbstractController{
 
     public function deleteDocument(SessionInterface $session, Request $request, UserInterface $user){
         
-        $repository = $this->getDoctrine()->getRepository(Document::class);
+        $repository = $this->doctrine->getRepository(Document::class);
         $document = $repository->find( $request->attributes->get('id') );
 
         if( $document->getFile() !== null )
@@ -215,7 +220,7 @@ class DocumentController extends AbstractController{
                 'fileName'  => $document->getFile(),
             ));
     
-        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager = $this->doctrine->getManager();
         $entityManager->remove($document);
         $entityManager->flush();
         return $this->redirectToRoute('adminDocuments');

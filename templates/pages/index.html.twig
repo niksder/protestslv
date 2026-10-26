@@ -72,7 +72,7 @@
             <div class="news-grid">
                 {% set i = 0 %}
                 {% set break = false %}
-                {% for article in articles if not break %}
+                {% for article in articles %}{% if not break %}
                     <div class="article">
                         <a href="{{ path('article', {article_url: article.link}) }}" class="image">
                             <img src="/assets/uploads/{{ article.image }}">
@@ -83,7 +83,7 @@
                     </div>
                     {% set i = i + 1 %}
                     {% if i is same as(4) %}{% set break = true %}{% endif %}
-                {% endfor %}
+                {% endif %}{% endfor %}
             </div>
 
             <a href="{{ path('articles') }}" class="button dark wide center">{{ c[12]|raw }}</a>

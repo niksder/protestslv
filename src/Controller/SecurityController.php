@@ -2,31 +2,34 @@
 
 namespace App\Controller;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 use App\Entity\Admin;
 
 class SecurityController extends AbstractController
 {
-    /**
-     * @Route("/login", name="app_login")
-     */
-    public function login(AuthenticationUtils $authenticationUtils, UserPasswordEncoderInterface $encoder): Response
+
+    public function __construct(private ManagerRegistry $doctrine)
+    {
+    }
+    #[Route('/login', name: 'app_login')]
+    public function login(AuthenticationUtils $authenticationUtils, UserPasswordHasherInterface $encoder): Response
     {
         /*$request = Request::createFromGlobals();
-        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager = $this->doctrine->getManager();
 
         $newAdmin = new Admin();
         $newAdmin->setUsername( "niks" );
         $newAdmin->setName( "Niks" );
 
-        $newAdmin->setPassword( $encoder->encodePassword($newAdmin, "niks") );
+        $newAdmin->setPassword( $encoder->hashPassword($newAdmin, "niks") );
         $newAdmin->setRoles( array("ROLE_SUPERADMIN") );
 
         $entityManager->persist($newAdmin);

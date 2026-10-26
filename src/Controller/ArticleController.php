@@ -2,9 +2,10 @@
 
 namespace App\Controller;
 
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,11 +27,15 @@ use App\Entity\Article;
 
 class ArticleController extends AbstractController{
 
+    public function __construct(private ManagerRegistry $doctrine)
+    {
+    }
+
     
 
     public function articles(SessionInterface $session, UserInterface $user){
         
-        $repository = $this->getDoctrine()->getRepository(Article::class);
+        $repository = $this->doctrine->getRepository(Article::class);
         $articles = $repository->findAll();
 
         for($i = 0; $i<sizeof($articles); $i++)  
@@ -48,7 +53,7 @@ class ArticleController extends AbstractController{
 
 
     public function removeArticleImage(SessionInterface $session, Request $request, UserInterface $user){
-        $repository = $this->getDoctrine()->getRepository(Article::class);
+        $repository = $this->doctrine->getRepository(Article::class);
         $article = $repository->find( $request->query->get('id') );      
 
         $resp = new Response("nothing");
@@ -58,7 +63,7 @@ class ArticleController extends AbstractController{
 
         $article->setImage(null);
 
-        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager = $this->doctrine->getManager();
         $entityManager->persist($article);
         $entityManager->flush();
 
@@ -66,11 +71,11 @@ class ArticleController extends AbstractController{
     }
 
     public function removeArticleImages(SessionInterface $session, Request $request, UserInterface $user){
-        $repository = $this->getDoctrine()->getRepository(Article::class);
+        $repository = $this->doctrine->getRepository(Article::class);
         $article = $repository->find( $request->query->get('id') );      
 
         $deletionResponse = new Response ("nothing");
-        $ids = $request->query->get('ids');
+        $ids = $request->query->all('ids');
         $images = $article->getImages();
         for($i = 0; $i<sizeof($ids); $i++){
             $deletionResponse = $this->forward('App\Controller\AdminController::removeFile', array(
@@ -86,7 +91,7 @@ class ArticleController extends AbstractController{
         
         $article->setImages( $newImages );
 
-        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager = $this->doctrine->getManager();
         $entityManager->persist($article);
         $entityManager->flush();
 
@@ -168,7 +173,7 @@ class ArticleController extends AbstractController{
 
             // ... perform some action, such as saving the task to the database
             // for example, if Task is a Doctrine entity, save it!
-            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager = $this->doctrine->getManager();
             $entityManager->persist($article);
             $entityManager->flush();
     
@@ -184,7 +189,7 @@ class ArticleController extends AbstractController{
 
     public function editArticle(SessionInterface $session, Request $request, UserInterface $user){
         
-        $repository = $this->getDoctrine()->getRepository(Article::class);
+        $repository = $this->doctrine->getRepository(Article::class);
 
         $article = $repository->find( $request->attributes->get('id') );
 
@@ -195,7 +200,7 @@ class ArticleController extends AbstractController{
 
         $authorChoices = array();
         if( $article->getAuthor() != 'Protests' && $article->getAuthor() != $user->getUsername() ){
-            $user_repository = $this->getDoctrine()->getRepository(Admin::class);
+            $user_repository = $this->doctrine->getRepository(Admin::class);
             $admin = $user_repository->findOneBy(['username' => $article->getAuthor() ]);
             array_push( $authorChoices, [$admin->getName() => $article->getAuthor()] );
         }
@@ -277,7 +282,7 @@ class ArticleController extends AbstractController{
 
             // ... perform some action, such as saving the task to the database
             // for example, if Task is a Doctrine entity, save it!
-            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager = $this->doctrine->getManager();
             $entityManager->persist($article);
             $entityManager->flush();
     
@@ -294,7 +299,7 @@ class ArticleController extends AbstractController{
     }
 
     public function deleteArticle(SessionInterface $session, Request $request, UserInterface $user){
-        $repository = $this->getDoctrine()->getRepository(Article::class);
+        $repository = $this->doctrine->getRepository(Article::class);
         $article = $repository->find( $request->attributes->get('id') );
 
         if( $article->getImage() !== null )
@@ -311,20 +316,20 @@ class ArticleController extends AbstractController{
             }
         }
         
-        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager = $this->doctrine->getManager();
         $entityManager->remove($article);
         $entityManager->flush();
         return $this->redirectToRoute('adminArticles');
     } 
 
     public function visibilityArticle(SessionInterface $session, Request $request, UserInterface $user){
-        $repository = $this->getDoctrine()->getRepository(Article::class);
+        $repository = $this->doctrine->getRepository(Article::class);
         $article = $repository->find( $request->query->get('id') );
 
         if(  $request->query->get('action') == 0 ||  $request->query->get('action') == 1 )
             $article->setPublished( $request->query->get('action') );
         
-        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager = $this->doctrine->getManager();
         $entityManager->persist($article);
         $entityManager->flush();
         return $this->redirectToRoute('adminArticles');
